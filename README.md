@@ -1,1 +1,1 @@
-# minify
+# minify apps - Max Warren
