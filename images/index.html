@@ -197,7 +197,6 @@
     .file-details span {
       font-weight: bold;
     }
-
     @media (max-width: 768px) {
       .converter-container {
         flex-direction: column;
@@ -241,6 +240,7 @@
           <p>Preview format: <span id="previewFormat">-</span></p>
           <p>Estimated size: <span id="previewSize">-</span></p>
           <p>Quality level: <span id="qualityLevel">-</span></p>
+          <p>New dimensions: <span id="newDimensions">-</span></p>
         </div>
       </section>
       <section class="download-section">
@@ -269,7 +269,6 @@
           </div>
           <p class="supported-formats">Resize the image dimensions</p>
         </div>
-        <button id="applyChangesBtn" disabled>Apply Changes</button>
         <button id="downloadBtn" class="download-btn" disabled>Download Image</button>
       </section>
     </div>
@@ -287,7 +286,6 @@
       const formatSelect = document.getElementById('formatSelect');
       const qualitySlider = document.getElementById('qualitySlider');
       const scaleSlider = document.getElementById('scaleSlider');
-      const applyChangesBtn = document.getElementById('applyChangesBtn');
       const downloadBtn = document.getElementById('downloadBtn');
       const errorMessage = document.getElementById('errorMessage');
       const loading = document.getElementById('loading');
@@ -295,15 +293,31 @@
       const previewFormat = document.getElementById('previewFormat');
       const previewSize = document.getElementById('previewSize');
       const qualityLevel = document.getElementById('qualityLevel');
+      const newDimensions = document.getElementById('newDimensions');
+      
       let originalImage = null;
       let currentBlob = null;
       let originalWidth = 0;
       let originalHeight = 0;
+      let processingTimeout = null;
       document.querySelectorAll('.slider').forEach(slider => {
         slider.addEventListener('input', function() {
           this.nextElementSibling.textContent = this.value + '%';
         });
       });
+      let isProcessing = false;
+      function debounceProcessing() {
+        if (isProcessing) return;
+        if (processingTimeout) {
+          clearTimeout(processingTimeout);
+        }
+        processingTimeout = setTimeout(() => {
+          processImage();
+        }, 800);
+      }
+      qualitySlider.addEventListener('input', debounceProcessing);
+      scaleSlider.addEventListener('input', debounceProcessing);
+      formatSelect.addEventListener('change', debounceProcessing);
       uploadArea.addEventListener('click', () => {
         imageInput.click();
       });
@@ -357,7 +371,6 @@
             formatSelect.disabled = false;
             qualitySlider.disabled = false;
             scaleSlider.disabled = false;
-            applyChangesBtn.disabled = false;
             const extension = file.name.split('.').pop().toLowerCase();
             if (['jpeg', 'jpg', 'png', 'webp'].includes(extension)) {
               const format = extension === 'jpg' ? 'jpeg' : extension;
@@ -369,10 +382,10 @@
         };
         reader.readAsDataURL(file);
       }
-      applyChangesBtn.addEventListener('click', processImage);
       function processImage() {
         if (!originalImage) return;
         showLoading();
+        isProcessing = true;
         const format = formatSelect.value;
         const quality = qualitySlider.value / 100;
         const scale = scaleSlider.value / 100;
@@ -388,18 +401,21 @@
             if (!blob) {
               showError('Failed to process image.');
               hideLoading();
+              isProcessing = false;
               return;
             }
             currentBlob = blob;
             const objectUrl = URL.createObjectURL(blob);
             previewImage.onload = function() {
               hideLoading();
+              isProcessing = false;
               previewImage.style.display = 'block';
               document.querySelector('.placeholder-text').style.display = 'none';
               downloadBtn.disabled = false;
               previewFormat.textContent = format.toUpperCase();
               previewSize.textContent = formatFileSize(blob.size);
               qualityLevel.textContent = qualitySlider.value + '%';
+              newDimensions.textContent = `${newWidth} × ${newHeight}`;
               previewInfo.style.display = 'block';
             };
             previewImage.src = objectUrl;
