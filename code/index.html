@@ -1,0 +1,58 @@
+<!-- Created by Max Warren -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="minify your js html or css code">
+    <title>MAX</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="root.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <button id="htmlBtn" onclick="showView('html')">HTML</button>
+            <button id="cssBtn" onclick="showView('css')">CSS</button>
+            <button id="jsBtn" onclick="showView('js')">JS</button>
+        </div>
+        <div id="htmlView" class="view">
+            <textarea id="inputHtml" placeholder="Enter HTML code..."></textarea>
+            <textarea id="html-output" readonly></textarea>
+            <div class="actions">
+                <button onclick="minifyHtml()">Minify</button>
+                <button onclick="openRenameDialog('html')">Download</button>
+                <button onclick="copyToClipboard('html')">Copy to Clipboard</button>
+                <div id="html-stats">Size: <span id="html-original-size">0</span> → <span id="html-minified-size">0</span> (Reduction: <span id="html-compression-ratio">0</span>%)</div>
+            </div>
+        </div>
+        <div id="cssView" class="view" style="display: none;">
+            <textarea id="css-input" placeholder="Enter CSS code..."></textarea>
+            <textarea id="css-output" readonly></textarea>
+            <div class="actions">
+                <button onclick="minifyCSS()">Minify</button>
+                <button onclick="openRenameDialog('css')">Download</button>
+                <button onclick="copyToClipboard('css')">Copy to Clipboard</button>
+                <div id="css-stats">Size: <span id="css-original-size">0</span> → <span id="css-minified-size">0</span> (Reduction: <span id="css-compression-ratio">0</span>%)</div>
+            </div>
+        </div>
+        <div id="jsView" class="view" style="display: none;">
+            <textarea id="js-input" placeholder="Enter JavaScript code..."></textarea>
+            <textarea id="js-output" readonly></textarea>
+            <div class="actions">
+                <button onclick="minifyJS()">Minify</button>
+                <button onclick="openRenameDialog('js')">Download</button>
+                <button onclick="copyToClipboard('js')">Copy to Clipboard</button>
+                <div id="js-stats">Size: <span id="js-original-size">0</span> → <span id="js-minified-size">0</span> (Reduction: <span id="js-compression-ratio">0</span>%)</div>
+            </div>
+        </div>
+        <div id="message" class="message">Action completed successfully!</div>
+        <div id="renameDialog" class="file-rename">
+            <p>Enter the file name for your download:</p>
+            <input type="text" id="fileName" placeholder="Enter filename...">
+            <button onclick="downloadWithName()">Confirm</button>
+        </div>
+    </div>
+</body>
+</html>
