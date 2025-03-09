@@ -1,89 +1,152 @@
-function showView(view) {
-    const views = ['html', 'css', 'js'];
-    views.forEach(v => {
-        const viewElement = document.getElementById(`${v}View`);
-        const button = document.getElementById(`${v}Btn`);
-        if (v === view) {
-            viewElement.style.display = 'block';
-            button.style.backgroundColor = 'var(--accent)';
-        } else {
-            viewElement.style.display = 'none';
-            button.style.backgroundColor = 'var(--dark2)';
-        }
+const tabs = document.querySelectorAll('.tab');
+const inputTextarea = document.getElementById('input');
+const outputTextarea = document.getElementById('output');
+const minifyBtn = document.getElementById('minify-btn');
+const clearBtn = document.getElementById('clear-btn');
+const copyBtn = document.getElementById('copy-btn');
+const downloadBtn = document.getElementById('download-btn');
+const notification = document.getElementById('notification');
+const inputSizeEl = document.getElementById('input-size');
+const outputSizeEl = document.getElementById('output-size');
+const originalSizeEl = document.getElementById('original-size');
+const minifiedSizeEl = document.getElementById('minified-size');
+const savedSizeEl = document.getElementById('saved-size');
+const reductionPercentageEl = document.getElementById('reduction-percentage');
+let currentTab = 'html';
+const minifyFunctions = {
+    html: function(input) {
+    return input
+        .replace(/\n/g, ' ')
+        .replace(/[\t ]+/g, ' ')
+        .replace(/> </g, '><')
+        .replace(/ +</g, '<')
+        .replace(/> +/g, '>')
+        .replace(/<!--.*?-->/g, '')
+        .trim();
+    },
+    css: function(input) {
+    return input
+        .replace(/\/\*.*?\*\//g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*{\s*/g, '{')
+        .replace(/\s*}\s*/g, '}')
+        .replace(/\s*:\s*/g, ':')
+        .replace(/\s*;\s*/g, ';')
+        .replace(/\s*,\s*/g, ',')
+        .replace(/;}/g, '}')
+        .trim();
+    },
+    js: function(input) {
+    return input
+        .replace(/\/\/.*$/gm, '')
+        .replace(/\/\*.*?\*\//gs, '')
+        .replace(/\s+/g, ' ')
+        .replace(/\s*{\s*/g, '{')
+        .replace(/\s*}\s*/g, '}')
+        .replace(/\s*:\s*/g, ':')
+        .replace(/\s*;\s*/g, ';')
+        .replace(/\s*,\s*/g, ',')
+        .replace(/\s*=\s*/g, '=')
+        .replace(/\s*\+\s*/g, '+')
+        .replace(/\s*-\s*/g, '-')
+        .replace(/\s*\*\s*/g, '*')
+        .replace(/\s*\/\s*/g, '/')
+        .replace(/\s*\(\s*/g, '(')
+        .replace(/\s*\)\s*/g, ')')
+        .trim();
+    }
+};
+const fileExtensions = {
+    html: '.html',
+    css: '.css',
+    js: '.js'
+};
+function updateFileSizes() {
+    const inputSize = new Blob([inputTextarea.value]).size;
+    const outputSize = new Blob([outputTextarea.value]).size;
+    inputSizeEl.textContent = formatSize(inputSize);
+    outputSizeEl.textContent = formatSize(outputSize);
+    originalSizeEl.textContent = inputSize;
+    minifiedSizeEl.textContent = outputSize;
+    const savedSize = Math.max(0, inputSize - outputSize);
+    savedSizeEl.textContent = savedSize;
+    const reductionPercentage = inputSize === 0 ? 0 : Math.round((savedSize / inputSize) * 100);
+    reductionPercentageEl.textContent = `${reductionPercentage}%`;
+}
+function formatSize(bytes) {
+    if (bytes === 0) return '0 bytes';
+    const k = 1024;
+    const sizes = ['bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+function minifyCode() {
+    const input = inputTextarea.value;
+    if (!input.trim()) {
+    return;
+    }
+    const minified = minifyFunctions[currentTab](input);
+    outputTextarea.value = minified;
+    updateFileSizes();
+    document.querySelectorAll('.stat-box').forEach(box => {
+    box.classList.remove('pulse');
+    setTimeout(() => box.classList.add('pulse'), 10);
     });
 }
-function minifyHtml() {
-    let html = document.getElementById('inputHtml').value;
-    let minifiedHtml = html.replace(/\n/g, '').replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
-    document.getElementById('html-output').value = minifiedHtml;
-    updateStats('html', html, minifiedHtml);
+function showNotification(message) {
+    notification.textContent = message;
+    notification.classList.add('show');
+    setTimeout(() => {
+    notification.classList.remove('show');
+    }, 2000);
 }
-function minifyCSS() {
-    const input = document.getElementById('css-input').value;
-    let minified = input.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '').replace(/\s+/g, ' ').replace(/\s*([\{\}\:\;\,])\s*/g, '$1').trim();
-    document.getElementById('css-output').value = minified;
-    updateStats('css', input, minified);
+function copyToClipboard() {
+    if (!outputTextarea.value) return;
+    outputTextarea.select();
+    document.execCommand('copy');
+    showNotification('Copied to clipboard!');
 }
-function minifyJS() {
-    const input = document.getElementById('js-input').value;
-    let minified = input.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '').replace(/\s+/g, ' ').replace(/\s*([{}();,+\-*/=<>!&|])\s*/g, '$1').trim();
-    document.getElementById('js-output').value = minified;
-    updateStats('js', input, minified);
-}
-function updateStats(type, original, minified) {
-    const originalSize = original.length;
-    const minifiedSize = minified.length;
-    const ratio = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
-    document.getElementById(`${type}-original-size`).textContent = originalSize;
-    document.getElementById(`${type}-minified-size`).textContent = minifiedSize;
-    document.getElementById(`${type}-compression-ratio`).textContent = ratio;
-}
-function copyToClipboard(type) {
-    const output = document.getElementById(`${type}-output`);
-    if (output) {
-        navigator.clipboard.writeText(output.value).then(() => {
-            showMessage();
-        }).catch(err => {
-            console.error('Error copying to clipboard: ', err);
-            alert('Failed to copy to clipboard.');
-        });
-    } else {
-        console.error(`Output element with ID ${type}-output not found.`);
-        alert(`Failed to copy: No output for ${type} found.`);
-    }
-}
-function showMessage() {
-    const message = document.getElementById('message');
-    message.style.display = 'block';
-    setTimeout(() => message.style.display = 'none', 2000);
-}
-function openRenameDialog(type) {
-    const dialog = document.getElementById('renameDialog');
-    const fileNameInput = document.getElementById('fileName');
-    dialog.style.display = 'flex';
-    fileNameInput.focus();
-    dialog.setAttribute('data-type', type);
-}
-function downloadWithName() {
-    const dialog = document.getElementById('renameDialog');
-    const fileNameInput = document.getElementById('fileName');
-    const fileName = fileNameInput.value.trim();
-    if (!fileName) {
-        alert("Please provide a file name.");
-        return;
-    }
-    const type = dialog.getAttribute('data-type');
-    const content = document.getElementById(`${type}-output`).value;
-    const blob = new Blob([content], { type: type === 'css' ? 'text/css' : (type === 'html' ? 'text/html' : 'application/javascript') });
+function downloadOutput() {
+    if (!outputTextarea.value) return;
+    const blob = new Blob([outputTextarea.value], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${fileName}.${type}`;
+    a.download = `minified${fileExtensions[currentTab]}`;
     document.body.appendChild(a);
     a.click();
+    setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    dialog.style.display = 'none';
-    fileNameInput.value = '';
+    }, 0);
+    showNotification('File downloaded!');
 }
-showView('html');
+function clearAll() {
+    inputTextarea.value = '';
+    outputTextarea.value = '';
+    updateFileSizes();
+}
+function switchTab(tab) {
+    currentTab = tab;
+    tabs.forEach(t => {
+    if (t.dataset.tab === tab) {
+        t.classList.add('active');
+    } else {
+        t.classList.remove('active');
+    }
+    });
+    clearAll();
+}
+inputTextarea.addEventListener('input', () => {
+    inputSizeEl.textContent = formatSize(new Blob([inputTextarea.value]).size);
+});
+minifyBtn.addEventListener('click', minifyCode);
+clearBtn.addEventListener('click', clearAll);
+copyBtn.addEventListener('click', copyToClipboard);
+downloadBtn.addEventListener('click', downloadOutput);
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+    switchTab(tab.dataset.tab);
+    });
+});
+updateFileSizes();

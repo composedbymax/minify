@@ -1,58 +1,88 @@
-<!-- Created by Max Warren -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="minify your js html or css code">
-    <title>MAX</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="root.css">
-    <script src="script.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAX</title>
+  <link rel="stylesheet" href="root.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="navbar">
-            <button id="htmlBtn" onclick="showView('html')">HTML</button>
-            <button id="cssBtn" onclick="showView('css')">CSS</button>
-            <button id="jsBtn" onclick="showView('js')">JS</button>
-        </div>
-        <div id="htmlView" class="view">
-            <textarea id="inputHtml" placeholder="Enter HTML code..."></textarea>
-            <textarea id="html-output" readonly></textarea>
-            <div class="actions">
-                <button onclick="minifyHtml()">Minify</button>
-                <button onclick="openRenameDialog('html')">Download</button>
-                <button onclick="copyToClipboard('html')">Copy to Clipboard</button>
-                <div id="html-stats">Size: <span id="html-original-size">0</span> → <span id="html-minified-size">0</span> (Reduction: <span id="html-compression-ratio">0</span>%)</div>
-            </div>
-        </div>
-        <div id="cssView" class="view" style="display: none;">
-            <textarea id="css-input" placeholder="Enter CSS code..."></textarea>
-            <textarea id="css-output" readonly></textarea>
-            <div class="actions">
-                <button onclick="minifyCSS()">Minify</button>
-                <button onclick="openRenameDialog('css')">Download</button>
-                <button onclick="copyToClipboard('css')">Copy to Clipboard</button>
-                <div id="css-stats">Size: <span id="css-original-size">0</span> → <span id="css-minified-size">0</span> (Reduction: <span id="css-compression-ratio">0</span>%)</div>
-            </div>
-        </div>
-        <div id="jsView" class="view" style="display: none;">
-            <textarea id="js-input" placeholder="Enter JavaScript code..."></textarea>
-            <textarea id="js-output" readonly></textarea>
-            <div class="actions">
-                <button onclick="minifyJS()">Minify</button>
-                <button onclick="openRenameDialog('js')">Download</button>
-                <button onclick="copyToClipboard('js')">Copy to Clipboard</button>
-                <div id="js-stats">Size: <span id="js-original-size">0</span> → <span id="js-minified-size">0</span> (Reduction: <span id="js-compression-ratio">0</span>%)</div>
-            </div>
-        </div>
-        <div id="message" class="message">Action completed successfully!</div>
-        <div id="renameDialog" class="file-rename">
-            <p>Enter the file name for your download:</p>
-            <input type="text" id="fileName" placeholder="Enter filename...">
-            <button onclick="downloadWithName()">Confirm</button>
-        </div>
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="html">HTML</div>
+      <div class="tab" data-tab="css">CSS</div>
+      <div class="tab" data-tab="js">JavaScript</div>
     </div>
+    <div class="content">
+      <div class="editor-container">
+        <div class="editor">
+          <div class="editor-heading">
+            <h3>Input</h3>
+            <div class="file-info" id="input-size">0 bytes</div>
+          </div>
+          <textarea id="input" placeholder="Paste your code here..."></textarea>
+        </div>
+        <div class="editor">
+          <div class="editor-heading">
+            <h3>Output</h3>
+            <div class="file-info" id="output-size">0 bytes</div>
+          </div>
+          <textarea id="output" placeholder="Minified code will appear here..." readonly></textarea>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="left-controls">
+          <button class="btn-primary" id="minify-btn">
+            Minify
+          </button>
+          <button class="btn-secondary" id="clear-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+            Clear
+          </button>
+        </div>
+        <div class="right-controls">
+          <button class="btn-primary" id="copy-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            Copy
+          </button>
+          <button class="btn-secondary" id="download-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-label">Original Size</div>
+          <div class="stat-value" id="original-size">0</div>
+          <div class="stat-label">bytes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Minified Size</div>
+          <div class="stat-value" id="minified-size">0</div>
+          <div class="stat-label">bytes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Saved</div>
+          <div class="stat-value" id="saved-size">0</div>
+          <div class="stat-label">bytes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Reduction</div>
+          <div class="stat-value" id="reduction-percentage">0%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notification" id="notification">Copied to clipboard!</div>
+  <script src="script.js"></script>
 </body>
 </html>
