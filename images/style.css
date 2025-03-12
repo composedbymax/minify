@@ -1,10 +1,5 @@
 :root {
-    --primary-color: #4a6fa5;
-    --secondary-color: #166088;
-    --background-color: #f5f7fa;
-    --card-bg: white;
-    --text-color: #333;
-    --border-color: #e1e4e8;
+    --shade: rgba(0, 0, 0, 0.2);
 }
 * {
     box-sizing: border-box;
@@ -15,11 +10,12 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
-    background-color: var(--background-color);
-    padding: 20px;
+    background: var(--gradient);
+    padding: 4rem 1rem;
+    min-height:100vh;
 }
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 .converter-container {
@@ -28,7 +24,7 @@ body {
     gap: 20px;
 }
 .upload-section, .preview-section, .download-section {
-    background: var(--card-bg);
+    background: var(--shade);
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     padding: 20px;
@@ -48,11 +44,11 @@ body {
 }
 h1 {
     margin-bottom: 15px;
-    color: var(--secondary-color);
+    color: var(--accent);
     font-size: 1.5rem;
 }
 .upload-area {
-    border: 2px dashed var(--border-color);
+    border: 2px dashed var(--accent);
     border-radius: 5px;
     padding: 40px 20px;
     text-align: center;
@@ -62,16 +58,11 @@ h1 {
 }
 .upload-area:hover {
     background-color: rgba(74, 111, 165, 0.05);
-    border-color: var(--primary-color);
+    border-color: var(--accenth);
 }
 .upload-area.active {
     background-color: rgba(74, 111, 165, 0.1);
-    border-color: var(--primary-color);
-}
-.upload-icon {
-    font-size: 48px;
-    color: var(--primary-color);
-    margin-bottom: 10px;
+    border-color: var(--accenth);
 }
 .hidden-input {
     display: none;
@@ -82,12 +73,13 @@ label {
     font-weight: 500;
 }
 select, button {
+    color:#fff;
     width: 100%;
     padding: 10px 15px;
     margin-bottom: 15px;
     border-radius: 5px;
-    border: 1px solid var(--border-color);
-    background-color: white;
+    border: 1px solid var(--accent);
+    background-color: var(--shade);
     font-size: 16px;
 }
 select {
@@ -98,18 +90,18 @@ select {
     padding-right: 35px;
 }
 button {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: var(--accent);
+    color: #000;
     cursor: pointer;
     border: none;
-    font-weight: 500;
+    font-weight: bold;
     transition: background-color 0.3s;
 }
 button:hover {
-    background-color: var(--secondary-color);
+    background-color: var(--accenth);
 }
 button:disabled {
-    background-color: #ccc;
+    background-color: var(--dark);
     cursor: not-allowed;
 }
 .slider-container {
@@ -225,7 +217,7 @@ button:disabled {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border-left-color: var(--primary-color);
+    border-left-color: var(--shade);
     animation: spin 1s linear infinite;
     margin: 0 auto 10px;
 }
