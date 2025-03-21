@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Minifier</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4cb5ae;
+            --light-color: #f5f5f5;
+            --dark-color: #333;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+            color: var(--dark-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .panel {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        .upload-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-panel:hover, .upload-panel.drag-over {
+            border-color: var(--accent-color);
+            background-color: rgba(76, 181, 174, 0.05);
+        }
+        .upload-panel i {
+            font-size: 3rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        .settings-panel {
+            margin-bottom: 20px;
+        }
+        .settings-panel h3 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .range-wrapper input[type="range"] {
+            flex-grow: 1;
+        }
+        .range-wrapper span {
+            width: 50px;
+            text-align: right;
+        }
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: var(--secondary-color);
+        }
+        .button.secondary {
+            background-color: #6c757d;
+        }
+        .button.secondary:hover {
+            background-color: #5a6268;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .image-preview {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .image-preview .placeholder {
+            color: #aaa;
+            text-align: center;
+        }
+        .info-panel {
+            margin-top: 15px;
+        }
+        .info-panel div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-panel label {
+            font-weight: 600;
+        }
+        .base64-output {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            resize: none;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        .copy-button:hover {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        .saved-panel {
+            margin-top: 20px;
+        }
+        .saved-panel h3 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        .saved-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        .saved-image {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .saved-image:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+        .saved-image img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: calc(var(--border-radius) - 5px);
+            margin-bottom: 5px;
+        }
+        .saved-image .title {
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 5px;
+        }
+        .saved-image .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+        .saved-image:hover .delete-btn {
+            opacity: 1;
+        }
+        .no-saved {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        .hidden {
+            display: none;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .input-group input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #file-input {
+            display: none;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Image Minifier</h1>
+            <p>Upload, optimize, and convert images to Base64</p>
+        </header>
+        <div class="app-container">
+            <div class="panel">
+                <div id="upload-panel" class="upload-panel">
+                    <span>⬆️</span>
+                    <p>Drag & drop an image or click to browse</p>
+                </div>
+                <input type="file" id="file-input" accept="image/*">
+                <div id="settings-panel" class="settings-panel hidden">
+                    <h3>Image Settings</h3>
+                    <div class="form-group">
+                        <label for="image-name">Image Name</label>
+                        <input type="text" id="image-name" placeholder="Enter image name">
+                    </div>
+                    <div class="form-group">
+                        <label for="quality-range">Quality: <span id="quality-value">80%</span></label>
+                        <div class="range-wrapper">
+                            <input type="range" id="quality-range" min="1" max="100" value="80">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dimensions</label>
+                        <div class="input-group">
+                            <input type="number" id="width-input" placeholder="Width">
+                            <span>×</span>
+                            <input type="number" id="height-input" placeholder="Height">
+                            <button id="lock-aspect" class="button secondary">🔒</button>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button id="apply-settings" class="button">Apply Changes</button>
+                        <button id="reset-settings" class="button secondary">Reset</button>
+                    </div>
+                </div>
+                <div class="saved-panel">
+                    <h3>Saved Images</h3>
+                    <div id="saved-images" class="saved-images">
+                        <div class="no-saved">No saved images yet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="preview-panel">
+                    <h3>Preview</h3>
+                    <div class="image-preview">
+                        <div id="preview-placeholder" class="placeholder">
+                            <p>Image preview will appear here</p>
+                        </div>
+                        <img id="preview-image" class="hidden">
+                        <button id="copy-image" class="copy-button hidden">Copy Base64</button>
+                    </div>
+                    <div id="info-panel" class="info-panel hidden">
+                        <div>
+                            <label>Original Size:</label>
+                            <span id="original-size">-</span>
+                        </div>
+                        <div>
+                            <label>New Size:</label>
+                            <span id="new-size">-</span>
+                        </div>
+                        <div>
+                            <label>Reduction:</label>
+                            <span id="size-reduction">-</span>
+                        </div>
+                        <div>
+                            <label>Dimensions:</label>
+                            <span id="dimensions">-</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Base64 Output</h3>
+                        <textarea id="base64-output" class="base64-output" readonly placeholder="Base64 string will appear here"></textarea>
+                    </div>
+                    <div class="button-group">
+                        <button id="save-image" class="button" disabled>Save to Local Storage</button>
+                        <button id="download-image" class="button secondary" disabled>Download Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="notification" class="notification"></div>
+    </div>
+    <script>
+        class ImageMinifier {
+            constructor() {
+                this.originalImage = null;
+                this.processedImage = null;
+                this.originalBase64 = null;
+                this.processedBase64 = null;
+                this.originalSize = 0;
+                this.processedSize = 0;
+                this.filename = '';
+                this.aspectRatio = 1;
+                this.lockAspect = true;
+                this.savedImages = [];
+                this.initElements();
+                this.initEventListeners();
+                this.loadSavedImages();
+            }
+            initElements() {
+                this.uploadPanel = document.getElementById('upload-panel');
+                this.fileInput = document.getElementById('file-input');
+                this.settingsPanel = document.getElementById('settings-panel');
+                this.imageName = document.getElementById('image-name');
+                this.qualityRange = document.getElementById('quality-range');
+                this.qualityValue = document.getElementById('quality-value');
+                this.widthInput = document.getElementById('width-input');
+                this.heightInput = document.getElementById('height-input');
+                this.lockAspectBtn = document.getElementById('lock-aspect');
+                this.applySettingsBtn = document.getElementById('apply-settings');
+                this.resetSettingsBtn = document.getElementById('reset-settings');
+                this.previewPlaceholder = document.getElementById('preview-placeholder');
+                this.previewImage = document.getElementById('preview-image');
+                this.copyImageBtn = document.getElementById('copy-image');
+                this.infoPanel = document.getElementById('info-panel');
+                this.originalSizeEl = document.getElementById('original-size');
+                this.newSizeEl = document.getElementById('new-size');
+                this.sizeReductionEl = document.getElementById('size-reduction');
+                this.dimensionsEl = document.getElementById('dimensions');
+                this.base64Output = document.getElementById('base64-output');
+                this.saveImageBtn = document.getElementById('save-image');
+                this.downloadImageBtn = document.getElementById('download-image');
+                this.savedImagesContainer = document.getElementById('saved-images');
+                this.notification = document.getElementById('notification');
+            }
+            initEventListeners() {
+                this.uploadPanel.addEventListener('click', () => this.fileInput.click());
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                this.uploadPanel.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.uploadPanel.classList.add('drag-over');
+                });
+                this.uploadPanel.addEventListener('dragleave', () => {
+                    this.uploadPanel.classList.remove('drag-over');
+                });
+                this.uploadPanel.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.uploadPanel.classList.remove('drag-over');
+                    if (e.dataTransfer.files.length) {
+                        this.handleFile(e.dataTransfer.files[0]);
+                    }
+                });
+                this.qualityRange.addEventListener('input', () => {
+                    this.qualityValue.textContent = `${this.qualityRange.value}%`;
+                });
+                this.lockAspectBtn.addEventListener('click', () => this.toggleAspectRatio());
+                this.widthInput.addEventListener('input', () => this.handleDimensionChange('width'));
+                this.heightInput.addEventListener('input', () => this.handleDimensionChange('height'));
+                this.applySettingsBtn.addEventListener('click', () => this.applySettings());
+                this.resetSettingsBtn.addEventListener('click', () => this.resetSettings());
+                this.copyImageBtn.addEventListener('click', () => this.copyBase64ToClipboard());
+                this.saveImageBtn.addEventListener('click', () => this.saveToLocalStorage());
+                this.downloadImageBtn.addEventListener('click', () => this.downloadImage());
+            }
+            handleFileSelect(event) {
+                if (event.target.files.length) {
+                    this.handleFile(event.target.files[0]);
+                }
+            }
+            handleFile(file) {
+                if (!file.type.match('image.*')) {
+                    this.showNotification('Please select an image file', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.originalImage = img;
+                        this.aspectRatio = img.width / img.height;
+                        this.filename = file.name.split('.')[0];
+                        this.imageName.value = this.filename;
+                        this.widthInput.value = img.width;
+                        this.heightInput.value = img.height;
+                        this.originalBase64 = e.target.result;
+                        this.originalSize = this.getBase64Size(this.originalBase64);
+                        this.processImage();
+                        this.settingsPanel.classList.remove('hidden');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            processImage() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const quality = parseInt(this.qualityRange.value) / 100;
+                const width = parseInt(this.widthInput.value) || this.originalImage.width;
+                const height = parseInt(this.heightInput.value) || this.originalImage.height;
+                canvas.width = width;
+                canvas.height = height;
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(this.originalImage, 0, 0, width, height);
+                this.processedBase64 = canvas.toDataURL('image/jpeg', quality);
+                this.processedSize = this.getBase64Size(this.processedBase64);
+                this.updatePreview();
+                this.updateInfoPanel();
+                this.base64Output.value = this.processedBase64;
+                this.saveImageBtn.disabled = false;
+                this.downloadImageBtn.disabled = false;
+            }
+            updatePreview() {
+                this.previewPlaceholder.classList.add('hidden');
+                this.previewImage.src = this.processedBase64;
+                this.previewImage.classList.remove('hidden');
+                this.copyImageBtn.classList.remove('hidden');
+            }
+            updateInfoPanel() {
+                const reduction = ((1 - (this.processedSize / this.originalSize)) * 100).toFixed(2);
+                this.infoPanel.classList.remove('hidden');
+                this.originalSizeEl.textContent = this.formatSize(this.originalSize);
+                this.newSizeEl.textContent = this.formatSize(this.processedSize);
+                this.sizeReductionEl.textContent = `${reduction}%`;
+                this.dimensionsEl.textContent = `${this.widthInput.value} × ${this.heightInput.value}`;
+            }
+            formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+                return (bytes / 1048576).toFixed(2) + ' MB';
+            }
+            getBase64Size(base64String) {
+                const base64WithoutPrefix = base64String.substring(base64String.indexOf(',') + 1);
+                return Math.ceil(base64WithoutPrefix.length * 0.75);
+            }
+            toggleAspectRatio() {
+                this.lockAspect = !this.lockAspect;
+                this.lockAspectBtn.textContent = this.lockAspect ? '🔒' : '🔓';
+            }
+            handleDimensionChange(type) {
+                if (!this.lockAspect) return;
+                if (type === 'width') {
+                    const width = parseInt(this.widthInput.value) || 0;
+                    this.heightInput.value = Math.round(width / this.aspectRatio);
+                } else {
+                    const height = parseInt(this.heightInput.value) || 0;
+                    this.widthInput.value = Math.round(height * this.aspectRatio);
+                }
+            }
+            applySettings() {
+                if (!this.originalImage) return;
+                this.processImage();
+                this.showNotification('Changes applied successfully');
+            }
+            resetSettings() {
+                if (!this.originalImage) return;
+                this.qualityRange.value = 80;
+                this.qualityValue.textContent = '80%';
+                this.widthInput.value = this.originalImage.width;
+                this.heightInput.value = this.originalImage.height;
+                this.processImage();
+                this.showNotification('Settings reset to original');
+            }
+            copyBase64ToClipboard() {
+                this.base64Output.select();
+                document.execCommand('copy');
+                this.showNotification('Base64 string copied to clipboard');
+            }
+            saveToLocalStorage() {
+                if (!this.processedBase64) return;
+                const name = this.imageName.value || `Image-${new Date().getTime()}`;
+                const image = {
+                    id: new Date().getTime(),
+                    name: name,
+                    base64: this.processedBase64,
+                    size: this.processedSize,
+                    dimensions: `${this.widthInput.value}×${this.heightInput.value}`
+                };
+                this.savedImages.push(image);
+                localStorage.setItem('minified-images', JSON.stringify(this.savedImages));
+                this.renderSavedImages();
+                this.showNotification('Image saved to local storage');
+            }
+            downloadImage() {
+                if (!this.processedBase64) return;
+                const link = document.createElement('a');
+                link.href = this.processedBase64;
+                link.download = `${this.imageName.value || 'minified-image'}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            loadSavedImages() {
+                const saved = localStorage.getItem('minified-images');
+                if (saved) {
+                    this.savedImages = JSON.parse(saved);
+                    this.renderSavedImages();
+                }
+            }
+            renderSavedImages() {
+                if (this.savedImages.length === 0) {
+                    this.savedImagesContainer.innerHTML = '<div class="no-saved">No saved images yet</div>';
+                    return;
+                }
+                this.savedImagesContainer.innerHTML = '';
+                this.savedImages.forEach(image => {
+                    const element = document.createElement('div');
+                    element.className = 'saved-image';
+                    element.innerHTML = `
+                        <img src="${image.base64}" alt="${image.name}">
+                        <div class="title" title="${image.name}">${image.name}</div>
+                        <button class="delete-btn" data-id="${image.id}">×</button>
+                    `;
+                    element.querySelector('img').addEventListener('click', () => this.loadSavedImage(image));
+                    element.querySelector('.delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteSavedImage(image.id);
+                    });
+                    this.savedImagesContainer.appendChild(element);
+                });
+            }
+            loadSavedImage(image) {
+                const img = new Image();
+                img.onload = () => {
+                    this.originalImage = img;
+                    this.originalBase64 = image.base64;
+                    this.processedBase64 = image.base64;
+                    this.originalSize = this.getBase64Size(image.base64);
+                    this.processedSize = this.originalSize;
+                    this.aspectRatio = img.width / img.height;
+                    this.imageName.value = image.name;
+                    this.widthInput.value = img.width;
+                    this.heightInput.value = img.height;
+                    this.settingsPanel.classList.remove('hidden');
+                    this.updatePreview();
+                    this.updateInfoPanel();
+                    this.base64Output.value = image.base64;
+                    this.saveImageBtn.disabled = false;
+                    this.downloadImageBtn.disabled = false;
+                };
+                img.src = image.base64;
+            }
+            deleteSavedImage(id) {
+                this.savedImages = this.savedImages.filter(image => image.id !== id);
+                localStorage.setItem('minified-images', JSON.stringify(this.savedImages));
+                this.renderSavedImages();
+                this.showNotification('Image deleted successfully');
+            }
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = 'notification show';
+                if (type === 'error') {
+                    this.notification.style.backgroundColor = '#ff4d4d';
+                } else {
+                    this.notification.style.backgroundColor = '';
+                }
+                setTimeout(() => {
+                    this.notification.className = 'notification';
+                }, 3000);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new ImageMinifier();
+        });
+    </script>
+</body>
+</html>
